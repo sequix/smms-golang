@@ -17,30 +17,30 @@ const (
 	smmsHost = "https://sm.ms"
 )
 
-type client struct {
+type Client struct {
 	token  string
 	client *http.Client
 }
 
-func New(username, password string) (*client, error) {
+func New(username, password string) (*Client, error) {
 	token, err := Token(username, password)
 	if err != nil {
 		return nil, err
 	}
-	return &client{
+	return &Client{
 		token:  token,
 		client: http.DefaultClient,
 	}, nil
 }
 
-func NewFromToken(token string) *client {
-	return &client{
+func NewFromToken(token string) *Client {
+	return &Client{
 		token:  token,
 		client: http.DefaultClient,
 	}
 }
 
-func (c *client) SetHTTPClient(client *http.Client) {
+func (c *Client) SetHTTPClient(client *http.Client) {
 	c.client = client
 }
 
@@ -76,7 +76,7 @@ func Token(username, password string, clients ...*http.Client) (string, error) {
 // 池化上传buffer，减少gc开销
 var uploadBufferPool byteBufferPool
 
-func (c *client) Upload(filename string, img io.Reader) (*ImageRsp, error) {
+func (c *Client) Upload(filename string, img io.Reader) (*ImageRsp, error) {
 	buf := uploadBufferPool.Get()
 	defer uploadBufferPool.Put(buf)
 
@@ -119,7 +119,7 @@ func (c *client) Upload(filename string, img io.Reader) (*ImageRsp, error) {
 	return &data, nil
 }
 
-func (c *client) History() ([]ImageRsp, error) {
+func (c *Client) History() ([]ImageRsp, error) {
 	rsp, err := do(
 		c.client,
 		http.MethodGet,
@@ -141,7 +141,7 @@ func (c *client) History() ([]ImageRsp, error) {
 	return data, nil
 }
 
-func (c *client) UploadHistory() ([]ImageRsp, error) {
+func (c *Client) UploadHistory() ([]ImageRsp, error) {
 	rsp, err := do(
 		c.client,
 		http.MethodGet,
@@ -163,7 +163,7 @@ func (c *client) UploadHistory() ([]ImageRsp, error) {
 	return data, nil
 }
 
-func (c *client) Profile() (*ProfileRsp, error) {
+func (c *Client) Profile() (*ProfileRsp, error) {
 	rsp, err := do(
 		c.client,
 		http.MethodPost,
@@ -185,7 +185,7 @@ func (c *client) Profile() (*ProfileRsp, error) {
 	return &data, nil
 }
 
-func (c *client) Delete(hash string) error {
+func (c *Client) Delete(hash string) error {
 	_, err := do(
 		c.client,
 		http.MethodGet,
@@ -199,7 +199,7 @@ func (c *client) Delete(hash string) error {
 	return err
 }
 
-func (c *client) Clear() error {
+func (c *Client) Clear() error {
 	_, err := do(
 		c.client,
 		http.MethodGet,

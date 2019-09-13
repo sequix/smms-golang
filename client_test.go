@@ -33,8 +33,15 @@ func TestInvalidAccount(t *testing.T) {
 	}
 }
 
-// 没写history和upload_history的单测，历史信息好像是异步落库的，刚upload的图片没有历史
-// 另，sm.ms做了图片内容hash，同一张图片，不同文件名，算一张图片
+func hasFilename(imgs []ImageRsp, filename string) bool {
+	for i := range imgs {
+		if imgs[i].Filename == filename {
+			return true
+		}
+	}
+	return false
+}
+
 func Test(t *testing.T) {
 	c, err := New(username, password)
 	if err != nil {
@@ -55,9 +62,19 @@ func Test(t *testing.T) {
 	}
 	imgHash := uploadRsp.Hash
 
+	historyRsp, err := c.History()
+	if err != nil || !hasFilename(historyRsp, testFilename) {
+		t.Fatalf("expecated a valid history request: %s", spew.Sdump(historyRsp, err))
+	}
+
 	err = c.Clear()
 	if err != nil {
 		t.Fatalf("expecated a valid clear request: %s", spew.Sdump(err))
+	}
+
+	uploadHistoryRsp, err := c.UploadHistory()
+	if err != nil || hasFilename(uploadHistoryRsp, testFilename)  {
+		t.Fatalf("expecated a valid upload_history request: %s", spew.Sdump(uploadHistoryRsp, err))
 	}
 
 	err = c.Delete(imgHash)
